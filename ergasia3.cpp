@@ -18,6 +18,7 @@ void myinit()
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
+	glEnable (GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
 	glClearColor(0, 0, 0, 1); 	
 
