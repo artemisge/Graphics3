@@ -16,17 +16,26 @@ GLfloat a = 8, b = 90, xyz[3] = {1, 2, 6};
 
 void myinit()
 {
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glEnable (GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
-	glClearColor(0, 0, 0, 1); 	
+	
+	//glLoadIdentity();
+	
+   	GLfloat light_position[] = { 0,30,10, 1.0 };
+   	glShadeModel (GL_SMOOTH);
 
-	glOrtho(-30.0, 30.0, -30.0, 30.0, 0, 100); // αν ειναι αρνητικά, πάει πίσω από τον παρατηρητή
+  	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+   	glEnable(GL_LIGHTING);
+   	glEnable(GL_LIGHT0);
+
+	glMatrixMode(GL_PROJECTION);
+	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
+	glClearColor(0, 0, 0, 0); 	
+
+	glOrtho(-50.0, 50.0, -50.0, 50.0, 0, 100); // αν ειναι αρνητικά, πάει πίσω από τον παρατηρητή
 	// nearVal, farVal documentation
     //Specify the distances to the nearer and farther depth clipping planes. These values are negative if the plane is to be behind the viewer. 
 	glMatrixMode(GL_MODELVIEW); // peirazoume ton xoro kai ta simeia tora, oxi tin kamera
-	gluLookAt(5,40,10,0,0,0,0,1,0);
+	gluLookAt(5,30,20,0,0,0,0,1,0);
 	// lookat explanation: https://stackoverflow.com/questions/5717654/glulookat-explanation/5721110
 }
 
@@ -75,6 +84,16 @@ void display()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glPushMatrix();
+		glLoadIdentity();
+		glColor3f(1,1,1);
+		glPointSize(10);
+		glBegin(GL_POINTS);
+			// Vertex: 3D, float, array
+			glVertex3f(0,30,-10); 
+		glEnd(); 
+	glPopMatrix();
+
 	// switch(menuoption) {
 	// 	case 0:
 	// 		// cube's center is on (0, 0, b)
@@ -106,9 +125,23 @@ void display()
 	// 		break;
 	// 	}
 	
+	// GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	// GLfloat mat_shininess[] = { 50.0 };
+
+	// glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	// glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
 	// ----ΓΡΑΣΙΔΙ----
 	glPushMatrix();
-		glColor3f(0,1,0);
+		//glColor3f(0,1,0);
+		GLfloat mat_emission[] = { 0, 1.0, 0, 1.0 };
+		GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+  		GLfloat mat_shininess[] = { 0 };
+
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
 		glScalef(15, 1, 15);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
@@ -117,7 +150,14 @@ void display()
 	// ----ΤΟΙΧΟΙ----
 	// πλευρά μπροστινή
 	glPushMatrix();
-		glColor3f(1,0,0); // red
+		//glColor3f(1,0,0); // red
+		GLfloat mat_emission2[] = { 1,0,0, 1.0 };
+		GLfloat mat_specular2[] = { 1.0, 1.0, 1.0, 1.0 };
+  		GLfloat mat_shininess2[] = { 0 };
+
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 5, 10);
 		glScalef(5, 5, 1);
 		glCallList(1);
@@ -125,7 +165,7 @@ void display()
 
 	// πλευρά δεξιά
 	glPushMatrix();
-		glColor3f(1,0,1); // mag
+		//glColor3f(1,0,1); // mag
 		glTranslatef(5, 5, 0);
 		glScalef(1, 5, 10);
 		glRotatef(90, 0, 1, 0); 
@@ -167,29 +207,7 @@ void display()
 	glPopMatrix();
 
 	// ----ΣΤΕΓΗ----
-	// στέγη δεξιά
-	glPushMatrix();
-		glColor3f(1,1,1); // white
-		glTranslatef(5,10,0);
-		glRotatef(60, 0, 0, -1);
-		glTranslatef(-5, 0, 0);
-		glScalef(5, 1, 10);
-		glRotatef(90, 1, 0, 0); 
-		glCallList(1);
-	glPopMatrix();
-
-	// στέγη αριστερά
-	glPushMatrix();
-		glColor3f(0,0,0); // black
-		glTranslatef(-5,10,0);
-		glRotatef(60, 0, 0, 1);
-		glTranslatef(5, 0, 0);
-		glScalef(5, 1, 10);
-		glRotatef(90, 1, 0, 0); 
-		glCallList(1);
-	glPopMatrix();
-
-	// στέγη μπροστά
+		// στέγη μπροστά
 	glPushMatrix();
 		glColor3f(1,1,0); // magenda
 		glTranslatef(0,10,10);
@@ -211,6 +229,35 @@ void display()
 			glVertex3f(5,0,0);
 			glVertex3f(0,sqrt(75),0);
 		glEnd(); 
+	glPopMatrix();
+
+	// στέγη δεξιά
+	glPushMatrix();
+		//glColor3f(1,1,1); // white
+		GLfloat mat_diffuse3[] = { 0.75,0.75,0.75, 1.0 };
+		GLfloat mat_specular3[] = { 1.0, 1.0, 1.0, 1.0 };
+  		GLfloat mat_shininess3[] = { 128 };
+
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_diffuse3);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess3);
+		glTranslatef(5,10,0);
+		glRotatef(60, 0, 0, -1);
+		glTranslatef(-5, 0, 0);
+		glScalef(5, 1, 10);
+		glRotatef(90, 1, 0, 0); 
+		glCallList(1);
+	glPopMatrix();
+
+	// στέγη αριστερά
+	glPushMatrix();
+		glColor3f(0,0,0); // black
+		glTranslatef(-5,10,0);
+		glRotatef(60, 0, 0, 1);
+		glTranslatef(5, 0, 0);
+		glScalef(5, 1, 10);
+		glRotatef(90, 1, 0, 0); 
+		glCallList(1);
 	glPopMatrix();
 
 	glutSwapBuffers();
