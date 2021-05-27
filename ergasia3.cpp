@@ -9,24 +9,32 @@
 using namespace std;
 
 // constantly changing angle
-GLfloat angle = 0, mult = 1;
+GLfloat angle = 0;
 
-// AEM:3374 mod 3 = 2
-GLfloat a = 8, b = 90, xyz[3] = {1, 2, 6};
+GLfloat sunPos[] = {-50,0,0};
+GLfloat sunInten[] = {0.3, 0.3, 0.3};
+GLfloat cam[] = {0, 40, 70};
+GLfloat camAngle = M_PI/180 * 270;
 
 void myinit()
 {
-	
 	//glLoadIdentity();
+	glShadeModel (GL_SMOOTH);
 	
-   	GLfloat light_position[] = { 0,30,10, 1.0 };
-   	glShadeModel (GL_SMOOTH);
+   	GLfloat light_position[] = {-50, 0, 0, 1};
+   	GLfloat whiteSpecularLight[] = {0.5, 0.5, 0.5};
+	//GLfloat blackAmbientLight[] = {0.5, 0.5, 0.5};
+	GLfloat whiteDiffuseLight[] = {0.5, 0.5, 0.5}; 
 
   	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, sunInten);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, blackAmbientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunInten);
 
    	glEnable(GL_LIGHTING);
    	glEnable(GL_LIGHT0);
-
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_NORMALIZE);
 	glMatrixMode(GL_PROJECTION);
 	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
 	glClearColor(0, 0, 0, 0); 	
@@ -35,25 +43,30 @@ void myinit()
 	// nearVal, farVal documentation
     //Specify the distances to the nearer and farther depth clipping planes. These values are negative if the plane is to be behind the viewer. 
 	glMatrixMode(GL_MODELVIEW); // peirazoume ton xoro kai ta simeia tora, oxi tin kamera
-	gluLookAt(5,30,20,0,0,0,0,1,0);
+	gluLookAt(cam[0],cam[1],cam[2],0,0,0,0,1,0);
 	// lookat explanation: https://stackoverflow.com/questions/5717654/glulookat-explanation/5721110
 }
 
-float step = 0.05;
-void spinResize() {
+float step = 0.0035; // total steps: 90 / 0.45 = 200 | 0.7 / 200 = 0.0035
+void idleFunc() {
 	angle += 0.45;
-	if (angle > 360) {
+	if (angle > 180) {
 		angle = 0;
 	}
-	//printf("%.2f ", mult);
+	if (angle <= 90) {
+		sunInten[0] += step;
+		sunInten[1] += step;
+		sunInten[2] += step;
+		//printf("%f", sunInten[0]);
+	} else {
+		sunInten[0] -= step;
+		sunInten[1] -= step;
+		sunInten[2] -= step;
+		//printf("%f", sunInten[0]);
+	}
+	
 	glutPostRedisplay();
-	mult += step;
-	if (mult >= 2.99) {
-		step = -0.05;
-	}
-	if (mult <= 1.01) {
-		step = 0.05;
-	}
+	
 }
 
 // sxhmatizei thn mia pleura tou kubou apo ta 4 vertices pou dinoume os orisma
@@ -75,22 +88,37 @@ GLfloat initialSquare[4][3] = {	{-1.0, 1.0, 0},
 int menuoption = 0; // default rotate cube center
 void display() 
 {	
-
-
 	// Δημιουργία τετραγώνου πλευράς 2 πάνω στο επίπεδο Z=0
 	glNewList(1, GL_COMPILE);
 		cubeFace(initialSquare[0], initialSquare[1], initialSquare[2], initialSquare[3]);
 	glEndList();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(cam[0],cam[1],cam[2],0,0,0,0,1,0);
+	printf(" %f|%f|%f\n", cam[0], cam[1], cam[2]);
 
 	glPushMatrix();
 		glLoadIdentity();
+		glRotatef(-angle, 0, 0, -1);
+		// if (angle > 30 && angle < 31) {
+		// 	printf(" %f\n", angle);
+		// }
+		//printf(" %f ", angle);
+		GLfloat light_position[] = {-50,0,0, 0.0 };
+		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+		
+	glPopMatrix();
+
+	glPushMatrix();
+		//glLoadIdentity();
 		glColor3f(1,1,1);
 		glPointSize(10);
+		glRotatef(-angle, 0, 0, 1);
 		glBegin(GL_POINTS);
 			// Vertex: 3D, float, array
-			glVertex3f(0,30,-10); 
+			glVertex3f(-50,0,0); 
 		glEnd(); 
 	glPopMatrix();
 
@@ -125,22 +153,20 @@ void display()
 	// 		break;
 	// 	}
 	
-	// GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	// GLfloat mat_shininess[] = { 50.0 };
-
-	// glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	// glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
 	// ----ΓΡΑΣΙΔΙ----
 	glPushMatrix();
 		//glColor3f(0,1,0);
-		GLfloat mat_emission[] = { 0, 1.0, 0, 1.0 };
-		GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+		GLfloat mat_ambient[] = { 0, 1.0, 0, 1.0 };
+		GLfloat mat_diffuse[] = { 0, 1.0, 0, 1.0 };
+		GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
   		GLfloat mat_shininess[] = { 0 };
 
-   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission);
-   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+   		glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 		glScalef(15, 1, 15);
 		glRotatef(90, 1, 0, 0);
@@ -152,12 +178,12 @@ void display()
 	glPushMatrix();
 		//glColor3f(1,0,0); // red
 		GLfloat mat_emission2[] = { 1,0,0, 1.0 };
-		GLfloat mat_specular2[] = { 1.0, 1.0, 1.0, 1.0 };
+		GLfloat mat_specular2[] = { 0, 0, 0, 1.0 };
   		GLfloat mat_shininess2[] = { 0 };
 
-   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 5, 10);
 		glScalef(5, 5, 1);
 		glCallList(1);
@@ -166,6 +192,9 @@ void display()
 	// πλευρά δεξιά
 	glPushMatrix();
 		//glColor3f(1,0,1); // mag
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(5, 5, 0);
 		glScalef(1, 5, 10);
 		glRotatef(90, 0, 1, 0); 
@@ -174,7 +203,10 @@ void display()
 
 	// πλευρά αριστερά
 	glPushMatrix();
-		glColor3f(1,0,1); // yellow
+		//glColor3f(1,0,1); // yellow
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(-5, 5, 0);
 		glScalef(1, 5, 10);
 		glRotatef(90, 0, 1, 0); 
@@ -183,7 +215,10 @@ void display()
 
 	// πλευρά πάνω
 	glPushMatrix();
-		glColor3f(0,0,1); // blue
+		//glColor3f(0,0,1); // blue
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 10, 0);
 		glScalef(5, 1, 10);
 		glRotatef(90, 1, 0, 0);
@@ -192,7 +227,10 @@ void display()
 
 	// πλευρά κάτω
 	glPushMatrix();
-		glColor3f(0,1,1); // cyan
+		//glColor3f(0,1,1); // cyan
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glScalef(5, 1, 10);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
@@ -200,7 +238,10 @@ void display()
 
 	// πλευρά πίσω
 	glPushMatrix();
-		glColor3f(1,1,0); // magenda
+		//glColor3f(1,1,0); // magenda
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 5, -10);
 		glScalef(5, 5, 1);
 		glCallList(1);
@@ -209,7 +250,10 @@ void display()
 	// ----ΣΤΕΓΗ----
 		// στέγη μπροστά
 	glPushMatrix();
-		glColor3f(1,1,0); // magenda
+		//glColor3f(1,1,0); // magenda
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(0,10,10);
 		glBegin(GL_TRIANGLES);
 			// ισόπλευρο τρίγωνο
@@ -221,7 +265,10 @@ void display()
 
 	// στέγη πίσω
 	glPushMatrix();
-		glColor3f(0,1,1); // magenda
+		//glColor3f(0,1,1); // magenda
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
 		glTranslatef(0,10,-10);
 		glBegin(GL_TRIANGLES);
 			// ισόπλευρο τρίγωνο
@@ -235,8 +282,8 @@ void display()
 	glPushMatrix();
 		//glColor3f(1,1,1); // white
 		GLfloat mat_diffuse3[] = { 0.75,0.75,0.75, 1.0 };
-		GLfloat mat_specular3[] = { 1.0, 1.0, 1.0, 1.0 };
-  		GLfloat mat_shininess3[] = { 128 };
+		GLfloat mat_specular3[] = { 1, 1, 1, 1.0 };
+  		GLfloat mat_shininess3[] = { 100 };
 
    		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_diffuse3);
    		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
@@ -251,7 +298,10 @@ void display()
 
 	// στέγη αριστερά
 	glPushMatrix();
-		glColor3f(0,0,0); // black
+		//glColor3f(0,0,0); // black
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_diffuse3);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess3);
 		glTranslatef(-5,10,0);
 		glRotatef(60, 0, 0, 1);
 		glTranslatef(5, 0, 0);
@@ -260,8 +310,9 @@ void display()
 		glCallList(1);
 	glPopMatrix();
 
+
 	glutSwapBuffers();
-	//glFlush(); /* clear buffers */
+	glFlush(); /* clear buffers */
 }
 
 void menu(int option) {
@@ -275,6 +326,25 @@ void menu(int option) {
 	}
 }
 
+void SpecialKeyHandler (int key, int x, int y)
+{
+    if (key == GLUT_KEY_RIGHT)
+        camAngle += M_PI/180 * 0.45;
+    if (key == GLUT_KEY_LEFT)
+        camAngle -= M_PI/180 * 0.45;
+
+	if (camAngle > M_PI/180 * 360) 
+		camAngle -= M_PI/180 * 360;
+	if (camAngle < 0)
+		camAngle += M_PI/180 * 360;
+
+	// now calculate new (x,z) for camera
+	cam[0] =  cos(camAngle) * 70; // 70 = radius
+	cam[2] =  sin(camAngle) * 70;
+	
+    glutPostRedisplay();
+}
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -285,8 +355,8 @@ int main(int argc, char **argv)
 	glutCreateWindow("Little House");			 
 	myinit();									
 	glutDisplayFunc(display);
-	glutIdleFunc(spinResize);	// called after display is finished	
-
+	glutIdleFunc(idleFunc);	// called after display is finished	
+	glutSpecialFunc (SpecialKeyHandler);
 	//glutCreateMenu(menu);
 	//glutAddMenuEntry("Rotate center", 0);
     //glutAddMenuEntry("Rotate vector", 1);
