@@ -15,6 +15,7 @@ GLfloat sunPos[] = {-50,0,0};
 GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI/180 * 270;
+bool s_enabled = true; // spotlight enabled
 
 void myinit()
 {
@@ -22,26 +23,39 @@ void myinit()
 	glShadeModel (GL_SMOOTH);
 	
    	GLfloat light_position[] = {-50, 0, 0, 1};
-   	GLfloat whiteSpecularLight[] = {0.5, 0.5, 0.5};
-	//GLfloat blackAmbientLight[] = {0.5, 0.5, 0.5};
-	GLfloat whiteDiffuseLight[] = {0.5, 0.5, 0.5}; 
 
   	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, sunInten);
-	//glLightfv(GL_LIGHT0, GL_AMBIENT, blackAmbientLight);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunInten);
 
    	glEnable(GL_LIGHTING);
-   	glEnable(GL_LIGHT0);
-	//glEnable(GL_COLOR_MATERIAL);
-	//glEnable(GL_NORMALIZE);
+   	//glEnable(GL_LIGHT0);
+
+	// spotlight
+	GLfloat spot_position[] = {0, 5, 11, 1};
+	GLfloat spot_diffuse[] = {0.5,0.5,0.5,1};	
+	GLfloat spot_specular[] = {1,1,1,1};
+	GLfloat spot_direction[] = {0, 0.5, -0.5};
+	GLfloat spot_ambient[] = {1,0,1,1};
+
+
+	glLightf(GL_LIGHT1,GL_SPOT_CUTOFF, 7.0);
+	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
+	//glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 1.0);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
+
+	//glLightfv(GL_LIGHT1,GL_SPOT_EXPONENT, 0);
+	glEnable(GL_LIGHT1);
+	//end spotlight
+
 	glMatrixMode(GL_PROJECTION);
 	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
 	glClearColor(0, 0, 0, 0); 	
-
 	glOrtho(-50.0, 50.0, -50.0, 50.0, 0, 100); // αν ειναι αρνητικά, πάει πίσω από τον παρατηρητή
-	// nearVal, farVal documentation
-    //Specify the distances to the nearer and farther depth clipping planes. These values are negative if the plane is to be behind the viewer. 
+	
 	glMatrixMode(GL_MODELVIEW); // peirazoume ton xoro kai ta simeia tora, oxi tin kamera
 	gluLookAt(cam[0],cam[1],cam[2],0,0,0,0,1,0);
 	// lookat explanation: https://stackoverflow.com/questions/5717654/glulookat-explanation/5721110
@@ -66,7 +80,6 @@ void idleFunc() {
 	}
 	
 	glutPostRedisplay();
-	
 }
 
 // sxhmatizei thn mia pleura tou kubou apo ta 4 vertices pou dinoume os orisma
@@ -85,7 +98,7 @@ GLfloat initialSquare[4][3] = {	{-1.0, 1.0, 0},
 								{1.0, -1.0, 0},
 								{-1.0, -1.0, 0}};
 
-int menuoption = 0; // default rotate cube center
+int menuoption = 0; // default 
 void display() 
 {	
 	// Δημιουργία τετραγώνου πλευράς 2 πάνω στο επίπεδο Z=0
@@ -99,6 +112,7 @@ void display()
 	gluLookAt(cam[0],cam[1],cam[2],0,0,0,0,1,0);
 	printf(" %f|%f|%f\n", cam[0], cam[1], cam[2]);
 
+	// sun/sphere movement
 	glPushMatrix();
 		glLoadIdentity();
 		glRotatef(-angle, 0, 0, -1);
@@ -106,10 +120,30 @@ void display()
 		// 	printf(" %f\n", angle);
 		// }
 		//printf(" %f ", angle);
-		GLfloat light_position[] = {-50,0,0, 0.0 };
+		GLfloat light_position[] = {-50, 0, 0, 0}; // CHECKKK
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 		
 	glPopMatrix();
+
+	// spotlight
+	// glPushMatrix();
+	// 	glLoadIdentity();
+		
+	// 	GLfloat spot_position[] = {0, 10, 10.1, 1};
+	// 	glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+
+	// 	GLfloat specularLight[] = {0.5, 0.5, 0.5};
+	// 	GLfloat diffuseLight[] = {0.5, 0.5, 0.5}; 
+
+	// 	glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight);
+	// 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight);
+
+	// 	if (s_enabled) 
+	// 		glEnable(GL_LIGHT1);
+	// 	else
+	// 		glDisable(GL_LIGHT1);
+		
+	// glPopMatrix();
 
 	glPushMatrix();
 		//glLoadIdentity();
@@ -168,12 +202,27 @@ void display()
    		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
   		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
-		glScalef(15, 1, 15);
+		glScalef(15, 1, 20);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
 	glPopMatrix();
 
 	// ----ΤΟΙΧΟΙ----
+	// πόρτα
+	glPushMatrix();
+		//glColor3f(1,0,0); // red
+		GLfloat mat_emissionp[] = { 0,0,0, 1.0 };
+		GLfloat mat_specularp[] = { 0, 0, 0, 1.0 };
+  		GLfloat mat_shininessp[] = { 0 };
+
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emissionp);
+   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specularp);
+  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininessp);
+		glTranslatef(0, 2.5, 10.1);
+		glScalef(1.5, 2.5, 1);
+		glCallList(1);
+	glPopMatrix();	
+
 	// πλευρά μπροστινή
 	glPushMatrix();
 		//glColor3f(1,0,0); // red
@@ -340,7 +389,7 @@ void SpecialKeyHandler (int key, int x, int y)
 
 	// now calculate new (x,z) for camera
 	cam[0] =  cos(camAngle) * 70; // 70 = radius
-	cam[2] =  sin(camAngle) * 70;
+	cam[2] =  -sin(camAngle) * 70;
 	
     glutPostRedisplay();
 }
