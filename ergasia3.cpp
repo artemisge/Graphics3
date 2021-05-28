@@ -29,7 +29,7 @@ void myinit()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, sunInten);
 
    	glEnable(GL_LIGHTING);
-   	//glEnable(GL_LIGHT0);
+   	glEnable(GL_LIGHT0);
 
 	// spotlight
 	GLfloat spot_position[] = {0, 5, 11, 1};
@@ -48,7 +48,7 @@ void myinit()
 	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
 
 	//glLightfv(GL_LIGHT1,GL_SPOT_EXPONENT, 0);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT1);
 	//end spotlight
 
 	glMatrixMode(GL_PROJECTION);
@@ -114,15 +114,18 @@ void display()
 
 	// sun/sphere movement
 	glPushMatrix();
-		glLoadIdentity();
-		glRotatef(-angle, 0, 0, -1);
+		//glLoadIdentity();
+		glRotatef(angle, 0, 0, -1);
 		// if (angle > 30 && angle < 31) {
 		// 	printf(" %f\n", angle);
 		// }
 		//printf(" %f ", angle);
 		GLfloat light_position[] = {-50, 0, 0, 0}; // CHECKKK
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-		
+		// glBegin(GL_POINTS);
+		// 	// Vertex: 3D, float, array
+		// 	glVertex3f(-50,0,0); 
+		// glEnd(); 
 	glPopMatrix();
 
 	// spotlight
@@ -149,7 +152,7 @@ void display()
 		//glLoadIdentity();
 		glColor3f(1,1,1);
 		glPointSize(10);
-		glRotatef(-angle, 0, 0, 1);
+		glRotatef(angle, 0, 0, -1);
 		glBegin(GL_POINTS);
 			// Vertex: 3D, float, array
 			glVertex3f(-50,0,0); 
@@ -198,26 +201,43 @@ void display()
 
    		glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+   		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
 		glScalef(15, 1, 20);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
 	glPopMatrix();
 
+	// "δέντρο"
+	glPushMatrix();
+		glTranslatef(10, 15, 4);
+		glutSolidSphere(2,100,100);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(10, 11, 4);
+		glutSolidSphere(3,100,100);
+	glPopMatrix();
+
+	glPushMatrix();
+		glTranslatef(10, 7, 4);
+		glutSolidSphere(3.5,100,100);
+	glPopMatrix();
+
+	
 	// ----ΤΟΙΧΟΙ----
 	// πόρτα
 	glPushMatrix();
 		//glColor3f(1,0,0); // red
-		GLfloat mat_emissionp[] = { 0,0,0, 1.0 };
+		GLfloat mat_emissionp[] = { 0, 0, 0, 1.0 };
 		GLfloat mat_specularp[] = { 0, 0, 0, 1.0 };
   		GLfloat mat_shininessp[] = { 0 };
 
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emissionp);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specularp);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininessp);
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emissionp);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularp);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininessp);
 		glTranslatef(0, 2.5, 10.1);
 		glScalef(1.5, 2.5, 1);
 		glCallList(1);
@@ -226,13 +246,14 @@ void display()
 	// πλευρά μπροστινή
 	glPushMatrix();
 		//glColor3f(1,0,0); // red
-		GLfloat mat_emission2[] = { 1,0,0, 1.0 };
+		GLfloat mat_emission2[] = { 1, 0, 0, 1.0 };
 		GLfloat mat_specular2[] = { 0, 0, 0, 1.0 };
   		GLfloat mat_shininess2[] = { 0 };
+		GLfloat mat_diffuse2[] = { 1, 0, 0, 1.0 };
 
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 5, 10);
 		glScalef(5, 5, 1);
 		glCallList(1);
@@ -241,21 +262,22 @@ void display()
 	// πλευρά δεξιά
 	glPushMatrix();
 		//glColor3f(1,0,1); // mag
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, mat_emission2);
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(5, 5, 0);
 		glScalef(1, 5, 10);
-		glRotatef(90, 0, 1, 0); 
+		glRotatef(90, 0, -1, 0); 
 		glCallList(1);
 	glPopMatrix();
 
 	// πλευρά αριστερά
 	glPushMatrix();
 		//glColor3f(1,0,1); // yellow
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(-5, 5, 0);
 		glScalef(1, 5, 10);
 		glRotatef(90, 0, 1, 0); 
@@ -265,9 +287,9 @@ void display()
 	// πλευρά πάνω
 	glPushMatrix();
 		//glColor3f(0,0,1); // blue
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 10, 0);
 		glScalef(5, 1, 10);
 		glRotatef(90, 1, 0, 0);
@@ -277,9 +299,9 @@ void display()
 	// πλευρά κάτω
 	glPushMatrix();
 		//glColor3f(0,1,1); // cyan
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glScalef(5, 1, 10);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
@@ -288,9 +310,9 @@ void display()
 	// πλευρά πίσω
 	glPushMatrix();
 		//glColor3f(1,1,0); // magenda
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0, 5, -10);
 		glScalef(5, 5, 1);
 		glCallList(1);
@@ -300,9 +322,9 @@ void display()
 		// στέγη μπροστά
 	glPushMatrix();
 		//glColor3f(1,1,0); // magenda
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0,10,10);
 		glBegin(GL_TRIANGLES);
 			// ισόπλευρο τρίγωνο
@@ -315,9 +337,9 @@ void display()
 	// στέγη πίσω
 	glPushMatrix();
 		//glColor3f(0,1,1); // magenda
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-   		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular2);
-  		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess2);
+		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 		glTranslatef(0,10,-10);
 		glBegin(GL_TRIANGLES);
 			// ισόπλευρο τρίγωνο
@@ -329,12 +351,15 @@ void display()
 
 	// στέγη δεξιά
 	glPushMatrix();
-		//glColor3f(1,1,1); // white
+	
+		//glColor3f(1,1,1); // white		
+		GLfloat mat_ambient3[] = { 0.6, 0.6, 0.6, 1.0 };
 		GLfloat mat_diffuse3[] = { 0.75,0.75,0.75, 1.0 };
 		GLfloat mat_specular3[] = { 1, 1, 1, 1.0 };
   		GLfloat mat_shininess3[] = { 100 };
 
-   		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_diffuse3);
+   		glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient3);
+   		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse3);
    		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
   		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess3);
 		glTranslatef(5,10,0);
@@ -347,6 +372,7 @@ void display()
 
 	// στέγη αριστερά
 	glPushMatrix();
+	
 		//glColor3f(0,0,0); // black
    		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_diffuse3);
    		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
@@ -404,14 +430,14 @@ int main(int argc, char **argv)
 	glutCreateWindow("Little House");			 
 	myinit();									
 	glutDisplayFunc(display);
-	glutIdleFunc(idleFunc);	// called after display is finished	
+	glutIdleFunc(idleFunc);		
 	glutSpecialFunc (SpecialKeyHandler);
 	//glutCreateMenu(menu);
 	//glutAddMenuEntry("Rotate center", 0);
     //glutAddMenuEntry("Rotate vector", 1);
 	//glutAttachMenu(GLUT_RIGHT_BUTTON);
 
-	glutMainLoop(); /* enter event loop */
+	glutMainLoop(); 
 	return 0;
 }
 
@@ -421,3 +447,23 @@ int main(int argc, char **argv)
 //of the primitives you are going to draw.
 //Projection matrix defines the characteristics of your 
 //camera, such as clip planes, field of view, projection method etc.
+
+
+
+
+
+// The "normal" of a vertex is the vector which is "perpendicular" to 
+// the vertex. In mathematics "normal" is a generalization of "perpendicular".
+// For a polygon, this "normal vector" is perpendicular to the polygon and
+// is the same for all of its vertices. One reason you might assign 
+// different normal vectors to each vertex of a polygon is if you are
+// covering a curved surface with very small triangles. In this case,
+// you don't want the normal vectors of the three vertices of the 
+// triangle to all be the same.
+
+// Now what is this normal vector used for? The typical application 
+// is used for coloring calculations when lighting is enabled in OpenGL. 
+// The normal vector can determine whether the light from a light source
+// hits a surface and what angle a light ray makes with the surface. 
+// This can then be used to determine whether the surface is shadowed 
+// or contains a specular highlight, for instance.
