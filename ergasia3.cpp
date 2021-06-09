@@ -5,6 +5,8 @@
 #include <GL/freeglut.h>
 #include <GL/gl.h>
 #include <math.h>
+#include <cmath>
+#include <list>
 #define M_PI 3.14159265358979323846
 using namespace std;
 
@@ -16,6 +18,8 @@ GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI/180 * 270;
 bool s_enabled = true; // spotlight enabled
+
+typedef GLfloat point3[3];
 
 void myinit()
 {
@@ -32,10 +36,10 @@ void myinit()
    	glEnable(GL_LIGHT0);
 
 	// spotlight
-	GLfloat spot_position[] = {0, 5, 11, 1};
+	GLfloat spot_position[] = {0, 5, 15, 1};
 	GLfloat spot_diffuse[] = {0.5,0.5,0.5,1};	
 	GLfloat spot_specular[] = {1,1,1,1};
-	GLfloat spot_direction[] = {0, 0.5, -0.5};
+	GLfloat spot_direction[] = {0, 0, 10};
 	GLfloat spot_ambient[] = {1,0,1,1};
 
 
@@ -48,8 +52,10 @@ void myinit()
 	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
 
 	//glLightfv(GL_LIGHT1,GL_SPOT_EXPONENT, 0);
-	//glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT1);
 	//end spotlight
+	glEnable(GL_NORMALIZE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
 	glMatrixMode(GL_PROJECTION);
 	glEnable(GL_DEPTH_TEST); // to see back of the cube, has to do with 3Dness
@@ -86,11 +92,49 @@ void idleFunc() {
 void cubeFace(GLfloat V0[], GLfloat V1[], GLfloat V2[], GLfloat V3[]){
 	glBegin(GL_POLYGON);
 		// Vertex: 3D, float, array
+		//float length = sqrt(0^2 + 0^2 + (-1)^2);
+		glNormal3f(0, 0, -1);
 		glVertex3fv(V0); 
+		glNormal3f(0, 0, -1);
 		glVertex3fv(V1);
+		glNormal3f(0, 0, -1);
 		glVertex3fv(V2);
+		glNormal3f(0, 0, -1);
 		glVertex3fv(V3);
 	glEnd(); 
+}
+
+// recursive function. DEPTH == 0 return
+void subDivision(GLfloat v0[], GLfloat v1[], GLfloat v2[], int depth) {
+	if (depth == 0) {
+		return;
+	} else {
+		--depth;
+		// now plot the points
+		glBegin(GL_TRIANGLES);
+			glVertex3fv(v0); 
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+		glEnd(); 
+		
+		// now make new triangles
+		point3 v[] = {	{(v0[0]+v1[0])/2, (v0[1]+v1[1])/2, (v0[2]+v1[2])/2},
+						{(v0[0]+v2[0])/2, (v0[1]+v2[1])/2, (v0[2]+v2[2])/2},
+						{(v2[0]+v1[0])/2, (v2[1]+v1[1])/2, (v2[2]+v1[2])/2}};
+		
+		// normalize points
+		for (int i = 0; i < 3; i++) {
+			float length = sqrt(pow(v[i][0], 2) + pow(v[i][1], 2) + pow(v[i][2], 2));
+			v[i][0] /= length;
+			v[i][1] /= length;
+			v[i][2] /= length;
+		}
+
+		subDivision(v0, v[0], v[1], depth);
+		subDivision(v[0], v1, v[2], depth);
+		subDivision(v[1], v2, v[2], depth);
+		subDivision(v[0], v[1], v[2], depth);
+	}
 }
 
 GLfloat initialSquare[4][3] = {	{-1.0, 1.0, 0},
@@ -114,18 +158,9 @@ void display()
 
 	// sun/sphere movement
 	glPushMatrix();
-		//glLoadIdentity();
 		glRotatef(angle, 0, 0, -1);
-		// if (angle > 30 && angle < 31) {
-		// 	printf(" %f\n", angle);
-		// }
-		//printf(" %f ", angle);
-		GLfloat light_position[] = {-50, 0, 0, 0}; // CHECKKK
+		GLfloat light_position[] = {-50, 0, 0, 1};
 		glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-		// glBegin(GL_POINTS);
-		// 	// Vertex: 3D, float, array
-		// 	glVertex3f(-50,0,0); 
-		// glEnd(); 
 	glPopMatrix();
 
 	// spotlight
@@ -148,15 +183,29 @@ void display()
 		
 	// glPopMatrix();
 
+	point3 v[] = {	{0.0, 0.0, 1.0}, 
+					{0.0, 0.942809, -0.33333},
+					{-0.816497, -0.471405, -0.333333}, 
+					{0.816497, -0.471405, -0.333333}};
+
 	glPushMatrix();
-		//glLoadIdentity();
-		glColor3f(1,1,1);
-		glPointSize(10);
+		GLfloat mat_emission5[] = { 1, 1.0, 0, 1.0 };
+		GLfloat mat_diffuse5[] = { 0, 1.0, 1, 1.0 };
+		GLfloat mat_specular5[] = { 0, 0, 0, 1.0 };
+  		GLfloat mat_shininess5[] = { 0 };
+
+   		glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission5);
+   		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse5);
+   		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular5);
+  		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess5);
+		
 		glRotatef(angle, 0, 0, -1);
-		glBegin(GL_POINTS);
-			// Vertex: 3D, float, array
-			glVertex3f(-50,0,0); 
-		glEnd(); 
+		glTranslatef(-50, 0, 0);
+
+		subDivision(v[0], v[1], v[2], 4);
+		subDivision(v[0], v[1], v[3], 4);
+		subDivision(v[0], v[2], v[3], 4);
+		subDivision(v[1], v[2], v[3], 4);
 	glPopMatrix();
 
 	// switch(menuoption) {
@@ -194,13 +243,14 @@ void display()
 	// ----ΓΡΑΣΙΔΙ----
 	glPushMatrix();
 		//glColor3f(0,1,0);
+		GLfloat mat_emission[] = { 0, 0, 0, 1.0 };
 		GLfloat mat_ambient[] = { 0, 1.0, 0, 1.0 };
 		GLfloat mat_diffuse[] = { 0, 1.0, 0, 1.0 };
 		GLfloat mat_specular[] = { 0, 0, 0, 1.0 };
   		GLfloat mat_shininess[] = { 0 };
 
    		glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-
+		glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
    		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
    		glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
   		glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
@@ -419,6 +469,30 @@ void SpecialKeyHandler (int key, int x, int y)
 	
     glutPostRedisplay();
 }
+
+// // επιστρέφει έναν πίνακα από κορυφές τριγώνων. array of array[3]
+// void sphereVert(point3 initSphere) {
+// 	list<point3[3]> listOfTriangles;
+
+// 	// for (int i = 0; i < 10; i++) {
+// 	// 	listOfTriangles.push_back({{(0,0,0)}, {(0,0,1)}, {(0,0,2)}});
+// 	// }
+
+//     // return listOfTriangles;
+// }
+
+// float radius = 1;
+// void computeHalfVertex(const float v1[3], const float v2[3], float newV[3])
+// {
+//     newV[0] = v1[0] + v2[0];    // x
+//     newV[1] = v1[1] + v2[1];    // y
+//     newV[2] = v1[2] + v2[2];    // z
+//     float scale = radius / sqrtf(newV[0]*newV[0] + newV[1]*newV[1] + newV[2]*newV[2]);
+//     newV[0] *= scale;
+//     newV[1] *= scale;
+//     newV[2] *= scale;
+// }
+
 
 int main(int argc, char **argv)
 {
