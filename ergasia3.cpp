@@ -18,14 +18,15 @@ GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI / 180 * 270;
 bool s_enabled = true; // spotlight enabled
+int grass = 0; // default
 
 typedef GLfloat point3[3];
 
 void myinit()
 {
 	glShadeModel(GL_SMOOTH);
-	//GLfloat ambientColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 	GLfloat light_position[] = {-50, 0, 0, 1};
 
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
@@ -36,22 +37,23 @@ void myinit()
 	glEnable(GL_LIGHT0);
 
 	//-------spotlight-------
-	GLfloat spot_position[] = {-10, 1, 0, 1}; //{0, 5, 15, 1};
+	GLfloat spot_position[] = {0, 25, 0, 1};
 	GLfloat spot_diffuse[] = {0.5, 0.5, 0.5, 1};
 	GLfloat spot_specular[] = {1, 1, 1, 1};
-	GLfloat spot_direction[] = {-10, -1, 0}; //{0, 0, 15};
-	GLfloat spot_ambient[] = {1, 0, 0, 1};
+	GLfloat spot_direction[] = {0, -25, 0};
+	GLfloat spot_ambient[] = {1, 1, 0, 1};
 
 	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 10.0);
 	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
-	//glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 1.0);
+	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
 	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
 	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
-
 	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0);
 	glEnable(GL_LIGHT1);
+	
+	glDisable(GL_LIGHT0);
 	//-------end spotlight--------
 
 	glEnable(GL_NORMALIZE);
@@ -232,22 +234,31 @@ void display()
 
 	// ----ΓΡΑΣΙΔΙ----
 	glPushMatrix();
-	//glColor3f(0,1,0);
+	glColor3f(0, 1, 0); // GREEN
 	GLfloat mat_emission[] = {0, 0, 0, 1.0};
 	GLfloat mat_ambient[] = {0, 1.0, 0, 1.0};
 	GLfloat mat_diffuse[] = {0, 1.0, 0, 1.0};
 	GLfloat mat_specular[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininess[] = {0};
 
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT, GL_EMISSION, mat_emission);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-	glScalef(15, 1, 20);
-	glRotatef(90, 1, 0, 0);
-	glCallList(1);
+	switch (grass)
+	{
+	case 0:
+		glScalef(15, 1, 20);
+		glRotatef(90, 1, 0, 0);
+		glCallList(1);
+		break;
+	case 1:
+		/* code */
+		break;
+	}
+
 	glPopMatrix();
 
 	// "δέντρο"
@@ -269,7 +280,7 @@ void display()
 	// ----ΤΟΙΧΟΙ----
 	// πόρτα
 	glPushMatrix();
-	//glColor3f(1,0,0); // red
+	glColor3f(0, 0, 0); // black
 	GLfloat mat_emissionp[] = {0, 0, 0, 1.0};
 	GLfloat mat_specularp[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininessp[] = {0};
@@ -284,7 +295,7 @@ void display()
 
 	// πλευρά μπροστινή
 	glPushMatrix();
-	//glColor3f(1,0,0); // red
+	glColor3f(1, 0, 0); // red
 	GLfloat mat_emission2[] = {1, 0, 0, 1.0};
 	GLfloat mat_specular2[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininess2[] = {0};
@@ -300,11 +311,6 @@ void display()
 
 	// πλευρά δεξιά
 	glPushMatrix();
-	//glColor3f(1,0,1); // mag
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(5, 5, 0);
 	glScalef(1, 5, 10);
 	glRotatef(90, 0, -1, 0);
@@ -313,10 +319,6 @@ void display()
 
 	// πλευρά αριστερά
 	glPushMatrix();
-	//glColor3f(1,0,1); // yellow
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(-5, 5, 0);
 	glScalef(1, 5, 10);
 	glRotatef(90, 0, 1, 0);
@@ -325,10 +327,6 @@ void display()
 
 	// πλευρά πάνω
 	glPushMatrix();
-	//glColor3f(0,0,1); // blue
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 10, 0);
 	glScalef(5, 1, 10);
 	glRotatef(90, 1, 0, 0);
@@ -337,10 +335,6 @@ void display()
 
 	// πλευρά κάτω
 	glPushMatrix();
-	//glColor3f(0,1,1); // cyan
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glScalef(5, 1, 10);
 	glRotatef(90, 1, 0, 0);
 	glCallList(1);
@@ -348,10 +342,6 @@ void display()
 
 	// πλευρά πίσω
 	glPushMatrix();
-	//glColor3f(1,1,0); // magenda
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 5, -10);
 	glScalef(5, 5, 1);
 	glCallList(1);
@@ -360,10 +350,6 @@ void display()
 	// ----ΣΤΕΓΗ----
 	// στέγη μπροστά
 	glPushMatrix();
-	//glColor3f(1,1,0); // magenda
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 10, 10);
 	glBegin(GL_TRIANGLES);
 	// ισόπλευρο τρίγωνο
@@ -375,10 +361,6 @@ void display()
 
 	// στέγη πίσω
 	glPushMatrix();
-	//glColor3f(0,1,1); // magenda
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 10, -10);
 	glBegin(GL_TRIANGLES);
 	// ισόπλευρο τρίγωνο
@@ -390,14 +372,13 @@ void display()
 
 	// στέγη δεξιά
 	glPushMatrix();
-
-	//glColor3f(1,1,1); // white
+	glColor3f(0.6, 0.6, 0.6);
 	GLfloat mat_ambient3[] = {0.6, 0.6, 0.6, 1.0};
 	GLfloat mat_diffuse3[] = {0.75, 0.75, 0.75, 1.0};
 	GLfloat mat_specular3[] = {1, 1, 1, 1.0};
 	GLfloat mat_shininess3[] = {100};
 
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient3);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient3);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse3);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular3);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess3);
