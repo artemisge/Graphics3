@@ -18,9 +18,45 @@ GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI / 180 * 270;
 bool s_enabled = true; // spotlight enabled
-int grass = 0; // default
+int grass = 2;		   // default (2-3)
 
 typedef GLfloat point3[3];
+
+// Συνάρτηση για υπολογισμό εξωτερικού γινομένου
+// δύο διανυσμάτων
+float *cross_product(float *a, float *b)
+{
+	float *result = new float[3]{a[1] * b[2] - a[2] * b[1],
+								 a[0] * b[2] - a[2] * b[0],
+								 a[0] * b[1] - a[1] * b[0]};
+	return result;
+}
+
+// Συνάρτηση για κανονικοποίηση
+void normalize(float *v)
+{
+	std::cout << v[0];
+	std::cout << v[1];
+	std::cout << v[2];
+	float length = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	std::cout << length;
+	for (int i = 0; i < 3; i++)
+	{
+		v[i] = v[i] / length;
+	}
+}
+
+// Συνάρτηση για τον υπολογισμό νόρμας 3ων κορυφών
+float *calculate_normal(float *a, float *b, float *c)
+{
+	// x = b - a, y = c - a
+	float x[] = {b[0] - a[0], b[1] - a[1], b[2] - a[2]};
+	float y[] = {c[0] - a[0], c[1] - a[1], c[2] - a[2]};
+
+	float *result = cross_product(x, y);
+	normalize(result);
+	return result;
+}
 
 void myinit()
 {
@@ -36,25 +72,7 @@ void myinit()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
-	//-------spotlight-------
-	GLfloat spot_position[] = {0, 25, 0, 1};
-	GLfloat spot_diffuse[] = {0.5, 0.5, 0.5, 1};
-	GLfloat spot_specular[] = {1, 1, 1, 1};
-	GLfloat spot_direction[] = {0, -25, 0};
-	GLfloat spot_ambient[] = {1, 1, 0, 1};
-
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 10.0);
-	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
-	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
-	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2.0);
-	glEnable(GL_LIGHT1);
 	
-	glDisable(GL_LIGHT0);
-	//-------end spotlight--------
 
 	glEnable(GL_NORMALIZE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
@@ -66,6 +84,7 @@ void myinit()
 
 	glMatrixMode(GL_MODELVIEW); // peirazoume ton xoro kai ta simeia tora, oxi tin kamera
 	gluLookAt(cam[0], cam[1], cam[2], 0, 0, 0, 0, 1, 0);
+	
 	// lookat explanation: https://stackoverflow.com/questions/5717654/glulookat-explanation/5721110
 }
 
@@ -100,13 +119,10 @@ void cubeFace(GLfloat V0[], GLfloat V1[], GLfloat V2[], GLfloat V3[])
 	glBegin(GL_POLYGON);
 	// Vertex: 3D, float, array
 	//float length = sqrt(0^2 + 0^2 + (-1)^2);
-	glNormal3f(0, 0, -1);
+	glNormal3fv(calculate_normal(V0, V1, V2));
 	glVertex3fv(V0);
-	glNormal3f(0, 0, -1);
 	glVertex3fv(V1);
-	glNormal3f(0, 0, -1);
 	glVertex3fv(V2);
-	glNormal3f(0, 0, -1);
 	glVertex3fv(V3);
 	glEnd();
 }
@@ -154,7 +170,7 @@ GLfloat initialSquare[4][3] = {{-1.0, 1.0, 0},
 							   {1.0, -1.0, 0},
 							   {-1.0, -1.0, 0}};
 
-int menuoption = 0; // default
+int shading = 0; // default
 void display()
 {
 	// Δημιουργία τετραγώνου πλευράς 2 πάνω στο επίπεδο Z=0
@@ -165,35 +181,43 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
 	gluLookAt(cam[0], cam[1], cam[2], 0, 0, 0, 0, 1, 0);
 	printf(" %f|%f|%f\n", cam[0], cam[1], cam[2]);
 
-	// sun/sphere movement
+	// SUN/sphere movement
 	glPushMatrix();
 	glRotatef(angle, 0, 0, -1);
 	GLfloat light_position[] = {-50, 0, 0, 1};
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glPopMatrix();
 
-	// spotlight
-	// glPushMatrix();
-	// 	glLoadIdentity();
+	// SPOTLIGHT
+	glPushMatrix();
+	//-------spotlight-------
+	GLfloat spot_position[] = {0, 5, 15, 1};
+	GLfloat spot_diffuse[] = {0.5, 0.5, 0.5, 1};
+	GLfloat spot_specular[] = {1, 1, 1, 1};
+	GLfloat spot_direction[] = {0, -5, -15};
+	GLfloat spot_ambient[] = {1, 1, 0, 1};
 
-	// 	GLfloat spot_position[] = {0, 10, 10.1, 1};
-	// 	glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+	// exei thema to cutoff
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 15);
+	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
+	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 15);
+	glEnable(GL_LIGHT1);
+	//-------end spotlight--------
+	glPopMatrix();
 
-	// 	GLfloat specularLight[] = {0.5, 0.5, 0.5};
-	// 	GLfloat diffuseLight[] = {0.5, 0.5, 0.5};
-
-	// 	glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight);
-	// 	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight);
-
-	// 	if (s_enabled)
-	// 		glEnable(GL_LIGHT1);
-	// 	else
-	// 		glDisable(GL_LIGHT1);
-
-	// glPopMatrix();
+	if (s_enabled)
+		glEnable(GL_LIGHT1);
+	else
+		glDisable(GL_LIGHT1);
 
 	point3 v[] = {{0.0, 0.0, 1.0},
 				  {0.0, 0.942809, -0.33333},
@@ -220,7 +244,7 @@ void display()
 	subDivision(v[1], v[2], v[3], 4);
 	glPopMatrix();
 
-	switch (menuoption)
+	switch (shading)
 	{
 	case 0:
 		// SHADING: SMOOTH
@@ -249,31 +273,60 @@ void display()
 
 	switch (grass)
 	{
-	case 0:
-		glScalef(15, 1, 20);
+	case 2:
+		glScalef(20, 1, 20);
 		glRotatef(90, 1, 0, 0);
 		glCallList(1);
 		break;
-	case 1:
-		/* code */
+	case 3:
+		// Αν η προηγούμενη επιφάνεια είναι 40x40
+		// τότε, αν το χωρίσουμε σε 100 τετράγωνα (10x10)
+		// το κάθε τετράγωνο θα είναι 4x4.
+		int size = 4;
+		// Επίσης, το πέρα αριστερά vertex είναι: (-20, 0, -20)
+		int x = -20, y = 0, z = -20;
+		for (int i = 0; i < 10; i++)
+		{
+			for (int j = 0; j < 10; j++)
+			{
+				// Για κάθε τετράγωνο θα βρούμε τις 4 κορυφές του
+				// Τα μετράμε ως εξής:
+				// v0---v1
+				// Ι	Ι
+				// v2---v3
+				GLfloat v0[] = {x + (size * i), y, z + (size * j)};
+				GLfloat v1[] = {x + size + (size * i), y, z + (size * j)};
+				GLfloat v2[] = {x + (size * i), y, z + size + (size * j)};
+				GLfloat v3[] = {x + size + (size * i), y, z + size + (size * j)};
+				glBegin(GL_POLYGON);
+				glNormal3f(0, 0, -1);
+				glVertex3fv(v0);
+				glNormal3f(0, 0, -1);
+				glVertex3fv(v1);
+				glNormal3f(0, 0, -1);
+				glVertex3fv(v3);
+				glNormal3f(0, 0, -1);
+				glVertex3fv(v2);
+				glEnd();
+			}
+		}
 		break;
 	}
-
-	glPopMatrix();
+	glPopMatrix(); // Τέλος το γρασίδι
 
 	// "δέντρο"
 	glPushMatrix();
-	glTranslatef(10, 15, 4);
+	glTranslatef(10, 15 - 5, 4);
 	glutSolidSphere(2, 100, 100);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(10, 11, 4);
+	glTranslatef(10, 11 - 5, 4);
 	glutSolidSphere(3, 100, 100);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(10, 7, 4);
+	glTranslatef(10, 7 - 5, 4);
 	glutSolidSphere(3.5, 100, 100);
 	glPopMatrix();
 
@@ -281,11 +334,11 @@ void display()
 	// πόρτα
 	glPushMatrix();
 	glColor3f(0, 0, 0); // black
-	GLfloat mat_emissionp[] = {0, 0, 0, 1.0};
+	GLfloat mat_difambp[] = {0, 0, 0, 1.0};
 	GLfloat mat_specularp[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininessp[] = {0};
 
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emissionp);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_difambp);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specularp);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininessp);
 	glTranslatef(0, 2.5, 10.1);
@@ -296,12 +349,12 @@ void display()
 	// πλευρά μπροστινή
 	glPushMatrix();
 	glColor3f(1, 0, 0); // red
-	GLfloat mat_emission2[] = {1, 0, 0, 1.0};
+	GLfloat mat_difamb[] = {1, 0, 0, 1.0};
 	GLfloat mat_specular2[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininess2[] = {0};
 	GLfloat mat_diffuse2[] = {1, 0, 0, 1.0};
 
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_emission2);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat_difamb);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular2);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 5, 10);
@@ -414,10 +467,20 @@ void menu(int option)
 	switch (option)
 	{
 	case 0:
-		menuoption = 0;
+		shading = 0;
 		break;
 	case 1:
-		menuoption = 1;
+		shading = 1;
+		break;
+	case 2:
+	case 3:
+		grass = option;
+		break;
+	case 4:
+		s_enabled = true;
+		break;
+	case 5:
+		s_enabled = false;
 		break;
 	}
 }
@@ -479,6 +542,13 @@ int main(int argc, char **argv)
 	glutCreateMenu(menu);
 	glutAddMenuEntry("Smooth Shading", 0);
 	glutAddMenuEntry("Flat Shading", 1);
+
+	glutAddMenuEntry("One tile floor", 2);
+	glutAddMenuEntry("100 tiles floor", 3);
+
+	glutAddMenuEntry("Spotlight On", 4);
+	glutAddMenuEntry("Spotlight Off", 5);
+
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutMainLoop();
