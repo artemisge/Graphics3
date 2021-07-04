@@ -18,7 +18,7 @@ GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI / 180 * 270;
 bool s_enabled = true; // spotlight enabled
-int grass = 2;		   // default (2-3)
+int grass = 3;		   // default (2-3)
 
 typedef GLfloat point3[3];
 
@@ -72,8 +72,6 @@ void myinit()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
-	
-
 	glEnable(GL_NORMALIZE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
@@ -84,7 +82,7 @@ void myinit()
 
 	glMatrixMode(GL_MODELVIEW); // peirazoume ton xoro kai ta simeia tora, oxi tin kamera
 	gluLookAt(cam[0], cam[1], cam[2], 0, 0, 0, 0, 1, 0);
-	
+
 	// lookat explanation: https://stackoverflow.com/questions/5717654/glulookat-explanation/5721110
 }
 
@@ -195,22 +193,23 @@ void display()
 	// SPOTLIGHT
 	glPushMatrix();
 	//-------spotlight-------
-	GLfloat spot_position[] = {0, 5, 15, 1};
-	GLfloat spot_diffuse[] = {0.5, 0.5, 0.5, 1};
+	GLfloat spot_position[] = {6, 10, 13, 1};
+	GLfloat spot_diffuse[] = {1, 1, 1, 1};
 	GLfloat spot_specular[] = {1, 1, 1, 1};
-	GLfloat spot_direction[] = {0, -5, -15};
+	GLfloat spot_direction[] = {10-6, 0-10, 14-13};
 	GLfloat spot_ambient[] = {1, 1, 0, 1};
 
 	// exei thema to cutoff
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 15);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 90);
 	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
-	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
+	//glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
 	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
-	glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
-	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 15);
+	//glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
+	//glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 15);
 	glEnable(GL_LIGHT1);
+	glDisable(GL_LIGHT0);
 	//-------end spotlight--------
 	glPopMatrix();
 
@@ -226,7 +225,7 @@ void display()
 
 	glPushMatrix();
 	GLfloat mat_emission5[] = {1, 1.0, 0, 1.0};
-	GLfloat mat_diffuse5[] = {0, 1.0, 1, 1.0};
+	GLfloat mat_diffuse5[] = {0, 0, 0, 1.0};
 	GLfloat mat_specular5[] = {0, 0, 0, 1.0};
 	GLfloat mat_shininess5[] = {0};
 
@@ -343,6 +342,7 @@ void display()
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininessp);
 	glTranslatef(0, 2.5, 10.1);
 	glScalef(1.5, 2.5, 1);
+	glRotatef(180, 1, 0, 0);
 	glCallList(1);
 	glPopMatrix();
 
@@ -359,6 +359,7 @@ void display()
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess2);
 	glTranslatef(0, 5, 10);
 	glScalef(5, 5, 1);
+	glRotatef(180, 1, 0, 0);
 	glCallList(1);
 	glPopMatrix();
 
@@ -404,11 +405,13 @@ void display()
 	// στέγη μπροστά
 	glPushMatrix();
 	glTranslatef(0, 10, 10);
+	glRotatef(180, 0, 1, 0);
 	glBegin(GL_TRIANGLES);
 	// ισόπλευρο τρίγωνο
 	glVertex3f(-5, 0, 0);
 	glVertex3f(5, 0, 0);
 	glVertex3f(0, sqrt(75), 0);
+	
 	glEnd();
 	glPopMatrix();
 
