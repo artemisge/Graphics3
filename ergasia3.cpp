@@ -18,7 +18,7 @@ GLfloat sunInten[] = {0.3, 0.3, 0.3};
 GLfloat cam[] = {0, 40, 70};
 GLfloat camAngle = M_PI / 180 * 270;
 bool s_enabled = true; // spotlight enabled
-int grass = 3;		   // default (2-3)
+int grass = 2;		   // default (2-3)
 
 typedef GLfloat point3[3];
 
@@ -193,23 +193,32 @@ void display()
 	// SPOTLIGHT
 	glPushMatrix();
 	//-------spotlight-------
-	GLfloat spot_position[] = {6, 10, 13, 1};
+
+	glPushMatrix();
+	glTranslatef(5.1, 10, 7);
+	glutSolidSphere(0.5, 100, 100);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(6, 0, 11);
+	glutSolidSphere(0.5, 100, 100);
+	glPopMatrix();
+
+	GLfloat spot_position[] = {5.1, 10, 7, 1};
 	GLfloat spot_diffuse[] = {1, 1, 1, 1};
 	GLfloat spot_specular[] = {1, 1, 1, 1};
-	GLfloat spot_direction[] = {10-6, 0-10, 14-13};
-	GLfloat spot_ambient[] = {1, 1, 0, 1};
+	GLfloat spot_direction[] = {6-5.1, 0-10, 11-7};
+	//GLfloat spot_ambient[] = {1, 1, 1, 1};
 
-	// exei thema to cutoff
-	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 90);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 30);
 	glLightfv(GL_LIGHT1, GL_POSITION, spot_position);
 	//glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.0);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, spot_diffuse);
 	glLightfv(GL_LIGHT1, GL_SPECULAR, spot_specular);
 	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
 	//glLightfv(GL_LIGHT1, GL_AMBIENT, spot_ambient);
-	//glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 15);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 2);
 	glEnable(GL_LIGHT1);
-	glDisable(GL_LIGHT0);
 	//-------end spotlight--------
 	glPopMatrix();
 
